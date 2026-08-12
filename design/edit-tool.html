@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Edit Tool - tiles.png</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, sans-serif;
+    display: flex;
+    height: 100vh;
+    background: #222;
+    color: #eee;
+  }
+  #canvas-wrap {
+    flex: 1;
+    overflow: auto;
+    position: relative;
+    background:
+      linear-gradient(45deg, #444 25%, transparent 25%, transparent 75%, #444 75%, #444),
+      linear-gradient(45deg, #444 25%, transparent 25%, transparent 75%, #444 75%, #444);
+    background-size: 20px 20px;
+    background-position: 0 0, 10px 10px;
+    padding: 20px;
+  }
+  canvas#display { display: block; cursor: crosshair; box-shadow: 0 0 0 1px #555; }
+  #sidebar {
+    width: 320px;
+    flex-shrink: 0;
+    padding: 16px;
+    overflow-y: auto;
+    background: #1a1a1a;
+    border-left: 1px solid #333;
+  }
+  h1 { font-size: 16px; margin: 0 0 8px; }
+  p { font-size: 12px; color: #aaa; line-height: 1.6; }
+  .section { margin-top: 16px; padding-top: 16px; border-top: 1px solid #333; }
+  button {
+    background: #333; color: #eee; border: 1px solid #555;
+    border-radius: 6px; padding: 8px 12px; cursor: pointer; font-size: 13px;
+  }
+  button:hover { background: #3d3d3d; }
+  button:disabled { opacity: 0.35; cursor: default; }
+  button.primary { background: #6a5cff; border-color: #6a5cff; color: #fff; }
+  button.danger { background: #a13b3b; border-color: #a13b3b; color: #fff; }
+  button.full { width: 100%; margin-top: 6px; padding: 10px; }
+  .row { display: flex; gap: 6px; margin-top: 6px; }
+  .row button { flex: 1; }
+  #status {
+    font-family: monospace;
+    font-size: 12px;
+    background: #000;
+    padding: 8px;
+    border-radius: 6px;
+    margin-top: 8px;
+    min-height: 40px;
+    white-space: pre-wrap;
+  }
+  kbd {
+    background: #333; border: 1px solid #555; border-radius: 3px;
+    padding: 1px 5px; font-size: 11px;
+  }
+  input[type=file] { font-size: 12px; color: #ccc; margin-top: 6px; }
+</style>
+</head>
+<body>
+
+<div id="canvas-wrap">
+  <canvas id="display"></canvas>
+</div>
+
+<div id="sidebar">
+  <h1>Edit Tool — tiles.png</h1>
+  <p>
+    1. Arraste um retângulo ao redor de um ícone.<br>
+    2. Clique <b>Cortar</b>.<br>
+    3. Arraste o ícone flutuante para um espaço vazio.<br>
+    4. Clique <b>Soltar aqui</b> para confirmar, ou <b>Excluir</b> para apagar de vez.
+  </p>
+
+  <div class="section">
+    Zoom:
+    <div class="row">
+      <button onclick="setScale(0.25)">0.25x</button>
+      <button onclick="setScale(0.5)">0.5x</button>
+      <button onclick="setScale(1)">1x</button>
+    </div>
+    <div class="row">
+      <button onclick="setScale(1.5)">1.5x</button>
+      <button onclick="setScale(2)">2x</button>
+      <button onclick="setScale(3)">3x</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <button class="primary full" id="cut-btn" disabled>Cortar seleção</button>
+    <div class="row">
+      <button class="primary" id="drop-btn" disabled>Soltar aqui</button>
+      <button class="danger" id="delete-btn" disabled>Excluir</button>
+    </div>
+    <button class="full" id="cancel-btn" disabled>Cancelar (Esc)</button>
+  </div>
+
+  <div class="section">
+    <button class="full" id="undo-btn" disabled>Desfazer último corte</button>
+  </div>
+
+  <div class="section">
+    <button class="full" id="reload-btn">Recarregar imagem original</button>
+    <input type="file" id="file-input" accept="image/png">
+  </div>
+
+  <div class="section">
+    <button class="primary full" id="download-btn">Baixar imagem editada</button>
+  </div>
+
+  <div id="status">pronto.</div>
+</div>
+
+<script>
+const displayCanvas = document.getElementById('display');
+const displayCtx = displayCanvas.getContext('2d');
+
+const modelCanvas = document.createElement('canvas');
+const modelCtx = modelCanvas.getContext('2d');
+
+let scale = 1;
+let modelW = 0, modelH = 0;
+
+// selection / floating state
+let state = 'IDLE'; // IDLE, SELECTING, SELECTED, FLOATING
+let selStart = null; // {x,y} in model coords
+let selEnd = null;
+let floatCanvas = null;
+let floatOrigin = null; // {left, top} where it was cut from
+let floatPos = null; // {x, y} current position (model coords)
+let dragOffset = null; // offset from floatPos to mouse when drag starts
+
+let undoStack = [];
+
+function setStatus(msg) {
+  document.getElementById('status').textContent = msg;
+}
+
+const CANVAS_MULT = 3; // working canvas is this many times larger than the source image
+
+function loadImage(src) {
+  const img = new Image();
+  img.onload = () => {
+    modelW = img.width * CANVAS_MULT;
+    modelH = img.height * CANVAS_MULT;
+    modelCanvas.width = modelW;
+    modelCanvas.height = modelH;
+    modelCtx.clearRect(0, 0, modelW, modelH);
+    modelCtx.drawImage(img, 0, 0, img.width, img.height);
+    undoStack = [];
+    resetSelection();
+    setScale(0.5);
+    setStatus(`imagem carregada: original ${img.width}x${img.height}, área de trabalho ${modelW}x${modelH}`);
+  };
+  img.onerror = () => setStatus('ERRO ao carregar imagem. Use o seletor de arquivo abaixo.');
+  img.src = src;
+}
+
+loadImage('tiles.png');
+
+document.getElementById('reload-btn').addEventListener('click', () => {
+  if (!confirm('Isso descarta todas as edições. Continuar?')) return;
+  loadImage('tiles.png');
+});
+
+document.getElementById('file-input').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  loadImage(url);
+});
+
+function setScale(s) {
+  scale = s;
+  displayCanvas.width = modelW * scale;
+  displayCanvas.height = modelH * scale;
+  redraw();
+}
+
+function redraw() {
+  displayCtx.imageSmoothingEnabled = false;
+  displayCtx.clearRect(0, 0, displayCanvas.width, displayCanvas.height);
+  displayCtx.drawImage(modelCanvas, 0, 0, displayCanvas.width, displayCanvas.height);
+
+  if (state === 'SELECTING' || state === 'SELECTED') {
+    const r = normRect(selStart, selEnd);
+    displayCtx.strokeStyle = '#ff00ff';
+    displayCtx.lineWidth = 2;
+    displayCtx.strokeRect(r.x * scale, r.y * scale, r.w * scale, r.h * scale);
+  }
+
+  if (state === 'FLOATING' && floatCanvas) {
+    displayCtx.drawImage(
+      floatCanvas, 0, 0, floatCanvas.width, floatCanvas.height,
+      floatPos.x * scale, floatPos.y * scale, floatCanvas.width * scale, floatCanvas.height * scale
+    );
+    displayCtx.strokeStyle = '#00ff88';
+    displayCtx.lineWidth = 2;
+    displayCtx.strokeRect(floatPos.x * scale, floatPos.y * scale, floatCanvas.width * scale, floatCanvas.height * scale);
+  }
+}
+
+function normRect(a, b) {
+  return {
+    x: Math.min(a.x, b.x),
+    y: Math.min(a.y, b.y),
+    w: Math.abs(b.x - a.x),
+    h: Math.abs(b.y - a.y),
+  };
+}
+
+function toModelCoords(evt) {
+  const rect = displayCanvas.getBoundingClientRect();
+  return {
+    x: Math.round((evt.clientX - rect.left) / scale),
+    y: Math.round((evt.clientY - rect.top) / scale),
+  };
+}
+
+function pointInFloat(pt) {
+  if (!floatCanvas) return false;
+  return pt.x >= floatPos.x && pt.x <= floatPos.x + floatCanvas.width &&
+         pt.y >= floatPos.y && pt.y <= floatPos.y + floatCanvas.height;
+}
+
+displayCanvas.addEventListener('mousedown', (evt) => {
+  const pt = toModelCoords(evt);
+  console.log('mousedown', { state, pt, floatPos, inFloat: state === 'FLOATING' ? pointInFloat(pt) : null });
+
+  if (state === 'FLOATING') {
+    if (pointInFloat(pt)) {
+      dragOffset = { x: pt.x - floatPos.x, y: pt.y - floatPos.y };
+      state = 'DRAGGING';
+    }
+    return;
+  }
+
+  if (state === 'IDLE' || state === 'SELECTED') {
+    selStart = pt;
+    selEnd = pt;
+    state = 'SELECTING';
+    updateButtons();
+    redraw();
+  }
+});
+
+let moveCount = 0;
+displayCanvas.addEventListener('mousemove', (evt) => {
+  const pt = toModelCoords(evt);
+  if (state === 'DRAGGING' || state === 'SELECTING') {
+    moveCount++;
+    console.log('mousemove#' + moveCount, { state, pt });
+  }
+
+  if (state === 'SELECTING') {
+    selEnd = pt;
+    redraw();
+  } else if (state === 'DRAGGING') {
+    floatPos = { x: pt.x - dragOffset.x, y: pt.y - dragOffset.y };
+    redraw();
+  }
+
+  const label = state === 'DRAGGING' ? `movendo para x=${floatPos.x}, y=${floatPos.y}` : `x=${pt.x}, y=${pt.y}`;
+  setStatus(label);
+});
+
+displayCanvas.addEventListener('mouseup', () => {
+  console.log('mouseup', { state, floatPos });
+  if (state === 'SELECTING') {
+    const r = normRect(selStart, selEnd);
+    if (r.w > 2 && r.h > 2) {
+      state = 'SELECTED';
+    } else {
+      state = 'IDLE';
+    }
+    updateButtons();
+    redraw();
+  } else if (state === 'DRAGGING') {
+    state = 'FLOATING';
+    updateButtons();
+    redraw();
+  }
+});
+
+function resetSelection() {
+  state = 'IDLE';
+  selStart = null;
+  selEnd = null;
+  floatCanvas = null;
+  floatOrigin = null;
+  floatPos = null;
+  updateButtons();
+}
+
+function updateButtons() {
+  document.getElementById('cut-btn').disabled = state !== 'SELECTED';
+  document.getElementById('drop-btn').disabled = state !== 'FLOATING';
+  document.getElementById('delete-btn').disabled = state !== 'FLOATING';
+  document.getElementById('cancel-btn').disabled = (state === 'IDLE');
+  document.getElementById('undo-btn').disabled = undoStack.length === 0;
+}
+
+document.getElementById('cut-btn').addEventListener('click', () => {
+  if (state !== 'SELECTED') return;
+  const r = normRect(selStart, selEnd);
+
+  // snapshot for undo
+  undoStack.push(modelCanvas.toDataURL('image/png'));
+
+  floatCanvas = document.createElement('canvas');
+  floatCanvas.width = r.w;
+  floatCanvas.height = r.h;
+  floatCanvas.getContext('2d').drawImage(modelCanvas, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h);
+
+  modelCtx.clearRect(r.x, r.y, r.w, r.h);
+
+  floatOrigin = { x: r.x, y: r.y };
+  floatPos = { x: r.x, y: r.y };
+  state = 'FLOATING';
+  updateButtons();
+  redraw();
+  setStatus(`cortado: ${r.w}x${r.h} px. Arraste para posicionar.`);
+});
+
+document.getElementById('drop-btn').addEventListener('click', dropFloat);
+function dropFloat() {
+  if (state !== 'FLOATING') return;
+  modelCtx.drawImage(floatCanvas, floatPos.x, floatPos.y);
+  floatCanvas = null;
+  floatOrigin = null;
+  floatPos = null;
+  state = 'IDLE';
+  updateButtons();
+  redraw();
+  setStatus('posicionado.');
+}
+
+document.getElementById('delete-btn').addEventListener('click', () => {
+  if (state !== 'FLOATING') return;
+  floatCanvas = null;
+  floatOrigin = null;
+  floatPos = null;
+  state = 'IDLE';
+  updateButtons();
+  redraw();
+  setStatus('ícone excluído.');
+});
+
+document.getElementById('cancel-btn').addEventListener('click', cancelAction);
+function cancelAction() {
+  if (state === 'FLOATING' || state === 'DRAGGING') {
+    // restore to original spot
+    modelCtx.drawImage(floatCanvas, floatOrigin.x, floatOrigin.y);
+    floatCanvas = null;
+    floatOrigin = null;
+    floatPos = null;
+  }
+  resetSelection();
+  redraw();
+  setStatus('cancelado.');
+}
+
+document.getElementById('undo-btn').addEventListener('click', () => {
+  if (undoStack.length === 0) return;
+  const dataUrl = undoStack.pop();
+  const img = new Image();
+  img.onload = () => {
+    modelCtx.clearRect(0, 0, modelW, modelH);
+    modelCtx.drawImage(img, 0, 0);
+    resetSelection();
+    redraw();
+    setStatus('desfeito.');
+  };
+  img.src = dataUrl;
+});
+
+document.getElementById('download-btn').addEventListener('click', () => {
+  const link = document.createElement('a');
+  link.download = 'tiles-edited.png';
+  link.href = modelCanvas.toDataURL('image/png');
+  link.click();
+});
+
+window.addEventListener('keydown', (evt) => {
+  if (evt.key === 'Escape') cancelAction();
+  if (evt.key === 'Enter' && state === 'FLOATING') dropFloat();
+  if (evt.key === 'Delete' || evt.key === 'Backspace') {
+    if (state === 'FLOATING') document.getElementById('delete-btn').click();
+  }
+});
+</script>
+</body>
+</html>

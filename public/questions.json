@@ -1,0 +1,37 @@
+[
+  {
+    "pergunta": "Antes de comer, o que devemos fazer?",
+    "opcoes": ["Lavar as mãos", "Assistir TV", "Correr bastante", "Nada"],
+    "resposta": 0,
+    "mensagemAcerto": "Isso mesmo! Lavar as mãos evita germes e doenças. 🧼",
+    "mensagemErro": "Quase! O certo é lavar as mãos antes de comer. 🧼"
+  },
+  {
+    "pergunta": "Qual desses alimentos é mais saudável?",
+    "opcoes": ["Maçã", "Bolacha recheada", "Refrigerante", "Balas"],
+    "resposta": 0,
+    "mensagemAcerto": "Muito bem! A maçã é uma fruta cheia de vitaminas. 🍎",
+    "mensagemErro": "Não foi dessa vez! A maçã é a opção mais saudável. 🍎"
+  },
+  {
+    "pergunta": "Quantas vezes por dia devemos escovar os dentes?",
+    "opcoes": ["Nunca", "1 vez por semana", "Pelo menos 2 vezes", "Só de manhã"],
+    "resposta": 2,
+    "mensagemAcerto": "Correto! Escovar os dentes pelo menos 2 vezes ao dia é importante. 🦷",
+    "mensagemErro": "Quase lá! O ideal é escovar os dentes pelo menos 2 vezes ao dia. 🦷"
+  },
+  {
+    "pergunta": "O que devemos fazer antes de atravessar a rua?",
+    "opcoes": ["Correr sem olhar", "Olhar para os dois lados", "Fechar os olhos", "Pular"],
+    "resposta": 1,
+    "mensagemAcerto": "Isso mesmo! Olhar para os dois lados nos deixa mais seguros. 🚦",
+    "mensagemErro": "Cuidado! O certo é sempre olhar para os dois lados antes de atravessar. 🚦"
+  },
+  {
+    "pergunta": "Quando alguém nos ajuda, o que devemos dizer?",
+    "opcoes": ["Nada", "Obrigado(a)", "Vai embora", "Não gostei"],
+    "resposta": 1,
+    "mensagemAcerto": "Muito bem! Dizer obrigado(a) é uma forma de sermos gentis. 😊",
+    "mensagemErro": "Quase! O ideal é sempre agradecer dizendo obrigado(a). 😊"
+  }
+]
