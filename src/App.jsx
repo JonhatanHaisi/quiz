@@ -6,6 +6,7 @@ import QuestionPage from './components/QuestionPage';
 import FeedbackPage from './components/FeedbackPage';
 import Result from './components/Result';
 import ConfirmModal from './components/ConfirmModal';
+import FullscreenButton from './components/FullscreenButton';
 import { getSessions, saveSession, clearSessions } from './lib/storage';
 import { downloadCsv } from './lib/csv';
 
@@ -133,6 +134,8 @@ export default function App() {
         onConfirm={handleConfirmLimpar}
         onCancel={() => setConfirmingClear(false)}
       />
+
+      <FullscreenButton />
     </>
   );
 }

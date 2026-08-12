@@ -1,40 +1,48 @@
 function csvEscape(value) {
-  const str = String(value);
-  if (/[;"\r\n]/.test(str)) {
+  const str = String(value ?? '');
+  if (/[\t"\r\n]/.test(str)) {
     return `"${str.replace(/"/g, '""')}"`;
   }
   return str;
 }
 
 export function downloadCsv(sessions) {
-  const header = [
-    'Nome', 'Prontuario', 'DataHora', 'NumeroPergunta', 'Pergunta',
-    'OpcaoEscolhida', 'RespostaCorreta', 'Acertou', 'PontuacaoFinal', 'TotalPerguntas',
-  ];
+  const maxQuestions = Math.max(0, ...sessions.map((s) => s.respostas.length));
+
+  const header = ['Nome', 'Prontuario', 'DataHora', 'Acertos', 'TotalPerguntas'];
+  for (let i = 1; i <= maxQuestions; i++) {
+    header.push(`Pergunta ${i}`, `Pergunta ${i} - Acertou`);
+  }
 
   const rows = [header];
 
   sessions.forEach((s) => {
     const total = s.respostas.length;
     const acertos = s.respostas.filter((r) => r.acertou).length;
-    s.respostas.forEach((r) => {
-      rows.push([
-        s.nome,
-        s.prontuario,
-        new Date(s.dataHora).toLocaleString('pt-BR'),
-        r.numero,
-        r.pergunta,
-        r.opcaoEscolhida,
-        r.respostaCorreta,
-        r.acertou ? 'Sim' : 'Nao',
-        acertos,
-        total,
-      ]);
-    });
+
+    const row = [s.nome, s.prontuario, new Date(s.dataHora).toLocaleString('pt-BR'), acertos, total];
+    for (let i = 0; i < maxQuestions; i++) {
+      const r = s.respostas[i];
+      row.push(r ? r.opcaoEscolhida : '', r ? (r.acertou ? 'Sim' : 'Nao') : '');
+    }
+    rows.push(row);
   });
 
-  const csvContent = rows.map((row) => row.map(csvEscape).join(';')).join('\r\n');
-  const blob = new Blob(['﻿' + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const csvContent = rows.map((row) => row.map(csvEscape).join('\t')).join('\r\n');
+
+  // Excel só reconhece acentos de forma 100% confiável, em qualquer versão e
+  // configuração regional, com UTF-16LE + BOM + tabulação como separador —
+  // é o mesmo formato do "Salvar como > Texto Unicode" do próprio Excel.
+  // CSV com BOM UTF-8 (mesmo com "sep=") às vezes é decodificado como ANSI,
+  // corrompendo acentos (ex: "Maçã" virando "MaÃ§Ã£").
+  const buf = new ArrayBuffer(csvContent.length * 2);
+  const view = new DataView(buf);
+  for (let i = 0; i < csvContent.length; i++) {
+    view.setUint16(i * 2, csvContent.charCodeAt(i), true);
+  }
+  const bom = new Uint8Array([0xff, 0xfe]);
+  const blob = new Blob([bom, buf], { type: 'text/csv;charset=utf-16le;' });
+
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
