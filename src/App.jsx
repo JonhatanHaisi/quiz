@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import Home from './components/Home';
 import Identification from './components/Identification';
+import TermsPage from './components/TermsPage';
 import QuestionPage from './components/QuestionPage';
 import FeedbackPage from './components/FeedbackPage';
+import EvaluationPage from './components/EvaluationPage';
 import Result from './components/Result';
 import Certificate from './components/Certificate';
 import ConfirmModal from './components/ConfirmModal';
@@ -39,6 +41,16 @@ export default function App() {
       prontuario,
       dataHora: new Date().toISOString(),
     });
+    setView('terms');
+  }
+
+  function handleAceitarTermos() {
+    setCurrentSession((prev) => ({
+      ...prev,
+      tcleAceito: true,
+      taleAceito: true,
+      dataAceiteTermos: new Date().toISOString(),
+    }));
     setCurrentIndex(0);
     setRespostas([]);
     setLastAnswer(null);
@@ -68,12 +80,16 @@ export default function App() {
       setLastAnswer(null);
       setView('quiz');
     } else {
-      const session = { ...currentSession, respostas };
-      saveSession(session);
-      setCurrentSession(session);
-      setSessionCount(getSessions().length);
-      setView('result');
+      setView('evaluation');
     }
+  }
+
+  function handleEvaluationSubmit(avaliacao) {
+    const session = { ...currentSession, respostas, avaliacao };
+    saveSession(session);
+    setCurrentSession(session);
+    setSessionCount(getSessions().length);
+    setView('result');
   }
 
   function handleGerarRespostas() {
@@ -108,6 +124,14 @@ export default function App() {
         {view === 'id' && (
           <Identification key="id" onComecar={handleComecar} onVoltar={() => setView('home')} />
         )}
+        {view === 'terms' && (
+          <TermsPage
+            key="terms"
+            nome={currentSession?.nome}
+            onAceitar={handleAceitarTermos}
+            onVoltar={() => setView('id')}
+          />
+        )}
         {view === 'quiz' && (
           <QuestionPage
             key={`quiz-${currentIndex}`}
@@ -124,6 +148,9 @@ export default function App() {
             message={lastAnswer.message}
             onContinue={handleFeedbackContinue}
           />
+        )}
+        {view === 'evaluation' && (
+          <EvaluationPage key="evaluation" onSubmit={handleEvaluationSubmit} />
         )}
         {view === 'result' && (
           <Result

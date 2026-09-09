@@ -8,10 +8,23 @@ function csvEscape(value) {
 
 export function downloadCsv(sessions) {
   const maxQuestions = Math.max(0, ...sessions.map((s) => s.respostas.length));
+  const maxAvaliacao = Math.max(0, ...sessions.map((s) => (s.avaliacao || []).length));
 
-  const header = ['Nome', 'Prontuario', 'DataHora', 'Acertos', 'TotalPerguntas'];
+  const header = [
+    'Nome',
+    'Prontuario',
+    'DataHora',
+    'TCLE Aceito',
+    'TALE Aceito',
+    'Data Aceite Termos',
+    'Acertos',
+    'TotalPerguntas',
+  ];
   for (let i = 1; i <= maxQuestions; i++) {
     header.push(`Pergunta ${i}`, `Pergunta ${i} - Acertou`);
+  }
+  for (let i = 1; i <= maxAvaliacao; i++) {
+    header.push(`Avaliacao ${i}`);
   }
 
   const rows = [header];
@@ -20,10 +33,23 @@ export function downloadCsv(sessions) {
     const total = s.respostas.length;
     const acertos = s.respostas.filter((r) => r.acertou).length;
 
-    const row = [s.nome, s.prontuario, new Date(s.dataHora).toLocaleString('pt-BR'), acertos, total];
+    const row = [
+      s.nome,
+      s.prontuario,
+      new Date(s.dataHora).toLocaleString('pt-BR'),
+      s.tcleAceito ? 'Sim' : 'Nao',
+      s.taleAceito ? 'Sim' : 'Nao',
+      s.dataAceiteTermos ? new Date(s.dataAceiteTermos).toLocaleString('pt-BR') : '',
+      acertos,
+      total,
+    ];
     for (let i = 0; i < maxQuestions; i++) {
       const r = s.respostas[i];
       row.push(r ? r.opcaoEscolhida : '', r ? (r.acertou ? 'Sim' : 'Nao') : '');
+    }
+    const avaliacao = s.avaliacao || [];
+    for (let i = 0; i < maxAvaliacao; i++) {
+      row.push(avaliacao[i] ? avaliacao[i].nota : '');
     }
     rows.push(row);
   });
