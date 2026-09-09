@@ -5,6 +5,7 @@ import Identification from './components/Identification';
 import QuestionPage from './components/QuestionPage';
 import FeedbackPage from './components/FeedbackPage';
 import Result from './components/Result';
+import Certificate from './components/Certificate';
 import ConfirmModal from './components/ConfirmModal';
 import FullscreenButton from './components/FullscreenButton';
 import { getSessions, saveSession, clearSessions } from './lib/storage';
@@ -55,7 +56,9 @@ export default function App() {
       acertou: correct,
     };
     setRespostas((prev) => [...prev, respostaObj]);
-    setLastAnswer({ correct, message: correct ? q.mensagemAcerto : q.mensagemErro });
+    const mensagemErroEspecifica = q.mensagensErro?.[selectedIndex];
+    const message = correct ? q.mensagemAcerto : (mensagemErroEspecifica ?? q.mensagemErro);
+    setLastAnswer({ correct, message });
     setView('feedback');
   }
 
@@ -123,7 +126,19 @@ export default function App() {
           />
         )}
         {view === 'result' && (
-          <Result key="result" session={currentSession} onVoltarHome={() => setView('home')} />
+          <Result
+            key="result"
+            session={currentSession}
+            onVoltarHome={() => setView('home')}
+            onGerarCertificado={() => setView('certificate')}
+          />
+        )}
+        {view === 'certificate' && (
+          <Certificate
+            key="certificate"
+            session={currentSession}
+            onVoltar={() => setView('result')}
+          />
         )}
       </AnimatePresence>
 

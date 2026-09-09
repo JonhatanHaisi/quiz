@@ -3,9 +3,10 @@ import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { iconSrc } from '../lib/assets';
 
-export default function Result({ session, onVoltarHome }) {
+export default function Result({ session, onVoltarHome, onGerarCertificado }) {
   const total = session.respostas.length;
   const acertos = session.respostas.filter((r) => r.acertou).length;
+  const passou = total > 0 && acertos / total > 0.5;
 
   useEffect(() => {
     confetti({
@@ -42,9 +43,21 @@ export default function Result({ session, onVoltarHome }) {
           {acertos} de {total} respostas certas
         </p>
 
-        <motion.button className="btn btn-primary" whileTap={{ scale: 0.95 }} onClick={onVoltarHome}>
+        {passou ? (
+          <motion.button
+            className="btn btn-primary"
+            whileTap={{ scale: 0.95 }}
+            onClick={onGerarCertificado}
+          >
+            🏆 Gerar certificado
+          </motion.button>
+        ) : (
+          <p className="result-hint">Acerte mais da metade para ganhar o certificado!</p>
+        )}
+
+        <button className="link-secondary" onClick={onVoltarHome}>
           🏠 Voltar ao início
-        </motion.button>
+        </button>
       </div>
     </motion.div>
   );

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { playCorrectSound, playWrongSound } from '../lib/sound';
 
 const COUNTDOWN_SECONDS = 5;
 
@@ -12,6 +13,11 @@ export default function QuestionPage({ question, index, total, onAnswered }) {
   function selectOption(i) {
     if (answered) return;
     setSelectedIndex(i);
+    if (i === question.resposta) {
+      playCorrectSound();
+    } else {
+      playWrongSound();
+    }
   }
 
   useEffect(() => {
