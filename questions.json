@@ -1,37 +1,77 @@
 [
   {
-    "pergunta": "Antes de comer, o que devemos fazer?",
-    "opcoes": ["Lavar as mãos", "Assistir TV", "Correr bastante", "Nada"],
-    "resposta": 0,
-    "mensagemAcerto": "Isso mesmo! Lavar as mãos evita germes e doenças. 🧼",
-    "mensagemErro": "Quase! O certo é lavar as mãos antes de comer. 🧼"
-  },
-  {
-    "pergunta": "Qual desses alimentos é mais saudável?",
-    "opcoes": ["Maçã", "Bolacha recheada", "Refrigerante", "Balas"],
-    "resposta": 0,
-    "mensagemAcerto": "Muito bem! A maçã é uma fruta cheia de vitaminas. 🍎",
-    "mensagemErro": "Não foi dessa vez! A maçã é a opção mais saudável. 🍎"
-  },
-  {
-    "pergunta": "Quantas vezes por dia devemos escovar os dentes?",
-    "opcoes": ["Nunca", "1 vez por semana", "Pelo menos 2 vezes", "Só de manhã"],
+    "pergunta": "Quantas vezes devemos escovar os dentes?",
+    "opcoes": ["Duas vezes", "Uma vez, antes de dormir", "Depois das principais refeições e antes de dormir"],
     "resposta": 2,
-    "mensagemAcerto": "Correto! Escovar os dentes pelo menos 2 vezes ao dia é importante. 🦷",
-    "mensagemErro": "Quase lá! O ideal é escovar os dentes pelo menos 2 vezes ao dia. 🦷"
+    "mensagemAcerto": "Isso mesmo! Parabéns",
+    "mensagemErro": "Escovar os dentes depois das refeições e antes de dormir ajuda a manter os dentes limpos e protegidos contra as cáries."
   },
   {
-    "pergunta": "O que devemos fazer antes de atravessar a rua?",
-    "opcoes": ["Correr sem olhar", "Olhar para os dois lados", "Fechar os olhos", "Pular"],
+    "pergunta": "Qual alimento é amigo dos dentes?",
+    "opcoes": ["Brigadeiro", "Queijo", "Suco de Laranja"],
     "resposta": 1,
-    "mensagemAcerto": "Isso mesmo! Olhar para os dois lados nos deixa mais seguros. 🚦",
-    "mensagemErro": "Cuidado! O certo é sempre olhar para os dois lados antes de atravessar. 🚦"
+    "mensagemAcerto": "O queijo ajuda a proteger os dentes, fortalece o esmalte e estimula a saliva.",
+    "mensagemErro": "Esse não é o alimento mais amigo dos dentes.",
+    "mensagensErro": [
+      "O brigadeiro tem bastante açúcar, que pode aumentar o risco de cárie.",
+      null,
+      "O suco de laranja é ácido e pode desgastar o esmalte dos dentes."
+    ]
   },
   {
-    "pergunta": "Quando alguém nos ajuda, o que devemos dizer?",
-    "opcoes": ["Nada", "Obrigado(a)", "Vai embora", "Não gostei"],
+    "pergunta": "É preciso escovar a língua?",
+    "opcoes": ["Sim", "Não"],
+    "resposta": 0,
+    "mensagemAcerto": "Escovar a língua ajuda a remover bactérias e a evitar o mau hálito.",
+    "mensagemErro": "Escovar a língua ajuda a remover bactérias e a evitar o mau hálito."
+  },
+  {
+    "pergunta": "Quanto mais creme dental colocamos na escova, melhor limpamos os dentes?",
+    "opcoes": ["Verdade", "Mentira"],
     "resposta": 1,
-    "mensagemAcerto": "Muito bem! Dizer obrigado(a) é uma forma de sermos gentis. 😊",
-    "mensagemErro": "Quase! O ideal é sempre agradecer dizendo obrigado(a). 😊"
+    "mensagemAcerto": "Não é preciso usar muito creme dental. O mais importante é escovar os dentes do jeito certo!",
+    "mensagemErro": "Não é preciso usar muito creme dental. O mais importante é escovar os dentes do jeito certo!"
+  },
+  {
+    "pergunta": "O fio dental ajuda a limpar lugares onde a escova não consegue chegar e deve ser usado todos os dias?",
+    "opcoes": ["Verdade", "Mentira"],
+    "resposta": 0,
+    "mensagemAcerto": "O fio dental limpa entre os dentes, onde a escova não consegue chegar. Por isso, devemos usá-lo todos os dias.",
+    "mensagemErro": "O fio dental limpa entre os dentes, onde a escova não consegue chegar. Por isso, devemos usá-lo todos os dias."
+  },
+  {
+    "pergunta": "Quando devemos ir ao dentista?",
+    "opcoes": ["Quando aparecer uma mancha no dente.", "Somente quando algum dente doer.", "Regularmente e sempre que precisarmos."],
+    "resposta": 2,
+    "mensagemAcerto": "Ir ao dentista regularmente ajuda a cuidar dos dentes e a descobrir problemas antes que eles piorem.",
+    "mensagemErro": "Ir ao dentista regularmente ajuda a cuidar dos dentes e a descobrir problemas antes que eles piorem."
+  },
+  {
+    "pergunta": "Quando devemos trocar a escova de dentes?",
+    "opcoes": ["A cada seis meses.", "Somente quando estiver muito velha.", "A cada três meses ou antes, se estiver desgastada."],
+    "resposta": 2,
+    "mensagemAcerto": "Quando as cerdas ficam tortas ou gastas, a escova não limpa tão bem.",
+    "mensagemErro": "Quando as cerdas ficam tortas ou gastas, a escova não limpa tão bem."
+  },
+  {
+    "pergunta": "Escovar os dentes ajuda a evitar:",
+    "opcoes": ["Cáries.", "Mau hálito.", "Problemas na boca.", "Todas as alternativas."],
+    "resposta": 3,
+    "mensagemAcerto": "Escovar os dentes ajuda a remover restos de comida e bactérias, mantendo a boca saudável.",
+    "mensagemErro": "Escovar os dentes ajuda a remover restos de comida e bactérias, mantendo a boca saudável."
+  },
+  {
+    "pergunta": "Quando devemos usar o fio dental?",
+    "opcoes": ["Somente quando ficar comida presa entre os dentes.", "Pelo menos uma vez por dia.", "Depois de cada refeição."],
+    "resposta": 1,
+    "mensagemAcerto": "O fio dental deve fazer parte da nossa rotina. Usá-lo todos os dias ajuda a limpar entre os dentes.",
+    "mensagemErro": "O fio dental deve fazer parte da nossa rotina. Usá-lo todos os dias ajuda a limpar entre os dentes."
+  },
+  {
+    "pergunta": "O que precisamos para cuidar bem dos dentes?",
+    "opcoes": ["Escova, creme dental e fio dental.", "Só escova e água.", "Escova e enxaguante bucal."],
+    "resposta": 0,
+    "mensagemAcerto": "Escova, creme dental com flúor e fio dental ajudam a manter os dentes limpos e saudáveis.",
+    "mensagemErro": "Escova, creme dental com flúor e fio dental ajudam a manter os dentes limpos e saudáveis."
   }
 ]
